@@ -1,23 +1,24 @@
 import math
 
+type Number = int | float
+
 
 class NearestNeighborIndex:
     """
-    TODO give me a decent comment
-
-    NearestNeighborIndex is intended to index a set of provided points to provide fast nearest
-    neighbor lookup. For now, it is simply a stub that performs an inefficient traversal of all
-    points every time.
+    NearestNeighborIndex indexes a set of given points and provides fast nearest
+    neighbor lookup through find_nearest_fast.
     """
 
-    def __init__(self, points):
+    def __init__(self, points: list[tuple[Number, Number]]):
         """
         takes an array of 2d tuples as input points and sorts array by x-coordinates.
         """
-        self.points = sorted(points, key=lambda p: p[0])
+        self.points: list[tuple[Number, Number]] = sorted(points, key=lambda p: p[0])
 
     @staticmethod
-    def find_nearest_slow(query_point, haystack):
+    def find_nearest_slow(
+        query_point: tuple[Number, Number], haystack: list[tuple[Number, Number]]
+    ) -> tuple[Number, Number] | None:
         """
         find_nearest_slow returns the point that is closest to query_point. If there are no indexed
         points, None is returned.
@@ -36,9 +37,9 @@ class NearestNeighborIndex:
 
         return min_point
 
-    def bisect_left_by_x_coord(self, target):
+    def bisect_left_by_x_coord(self, target: Number) -> int:
         """
-        bisect_left returns the leftmost insertion point for target based on the x-coordinate of each point.
+        bisect_left returns the index of the leftmost insertion point for target based on the x-coordinate of each point.
         """
         left = 0
         right = len(self.points) - 1
@@ -50,7 +51,9 @@ class NearestNeighborIndex:
                 left = middle
         return right
 
-    def find_nearest_fast(self, query_point):
+    def find_nearest_fast(
+        self, query_point: tuple[Number, Number]
+    ) -> tuple[Number, Number] | None:
         """
         TODO: Re-implement me with your faster solution.
 
@@ -65,39 +68,69 @@ class NearestNeighborIndex:
         query_x, query_y = query_point[0], query_point[1]
         right = self.bisect_left_by_x_coord(query_x)
         left = right - 1
+
         while left >= 0 or right < len(self.points):
             if left >= 0:
+                # checks next point to the left with the minimum x-distance to the query point
                 point = self.points[left]
                 dist_x = point[0] - query_x
                 dist_x_squared = dist_x * dist_x
-                if dist_x_squared > min_dist_squared:
+
+                if dist_x_squared >= min_dist_squared:
+                    """
+                    prunes the remaining points in the left side of self.points
+                    if dist_x_squared is greater than or equal to min_dist_squared
+                    """
                     left = -1
+
                 else:
+                    # calculates distance squared
                     dist_y = point[1] - query_y
                     dist_squared = dist_x_squared + dist_y * dist_y
+
                     if dist_squared < min_dist_squared:
+                        """
+                        sets min_point to the new closest point and
+                        sets min_dist_squared to its corresponding distance
+                        """
                         min_dist_squared = dist_squared
                         min_point = point
                     left -= 1
+
             if right < len(self.points):
+                # checks next point to the right with the minimum x-distance to the query point
                 point = self.points[right]
                 dist_x = point[0] - query_x
                 dist_x_squared = dist_x * dist_x
+
                 if dist_x_squared > min_dist_squared:
+                    """
+                    prunes the remaining points in the right side of self.points
+                    if dist_x_squared is greater than or equal to min_dist_squared
+                    """
                     right = len(self.points)
+
                 else:
+                    # calculates distance squared
                     dist_y = point[1] - query_y
                     dist_squared = dist_x_squared + dist_y * dist_y
                     if dist_squared < min_dist_squared:
+                        """
+                        sets min_point to the new closest point and
+                        sets min_dist_squared to its corresponding distance
+                        """
                         min_dist_squared = dist_squared
                         min_point = point
                     right += 1
 
         return min_point
 
-    def find_nearest(self, query_point):
+    def find_nearest(
+        self, query_point: tuple[Number, Number]
+    ) -> tuple[Number, Number] | None:
         """
-        TODO comment me.
+        Returns the indexed point closes to the query_point using Euclidean distance.
+        If no points are indexed, returns None.
         """
 
         # TODO implement me so this class runs much faster.
