@@ -48,6 +48,8 @@ class NearestNeighborIndex:
         min_dist_squared = None
         for point in self.points:
             deltax = point[0] - query_point[0]
+            if min_dist_squared is not None and deltax * deltax >= min_dist_squared:
+                continue
             deltay = point[1] - query_point[1]
             dist_squared = deltax * deltax + deltay * deltay
             if min_dist_squared is None or dist_squared < min_dist_squared:
