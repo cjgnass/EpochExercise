@@ -47,7 +47,9 @@ class NearestNeighborIndexTest(unittest.TestCase):
         # Run the baseline slow tests to get the expected values.
         start = time.time()
         for query_point in query_points:
-            expected.append(NearestNeighborIndex.find_nearest_slow(query_point, index_points))
+            expected.append(
+                NearestNeighborIndex.find_nearest_slow(query_point, index_points)
+            )
         slow_time = time.time() - start
 
         # don't include the indexing time when benchmarking
@@ -64,3 +66,15 @@ class NearestNeighborIndexTest(unittest.TestCase):
         print(f"speedup: {(slow_time / new_time):0.2f}x")
 
     # TODO: Add more test cases to ensure your index works in different scenarios
+    def test_no_points(self):
+        """
+        test_no_points tests nearest neighbor queries returns None if NearestNeighborIndex is initialized with no points.
+        """
+
+        test_points = []
+
+        uut = NearestNeighborIndex(test_points)
+
+        self.assertEqual(None, uut.find_nearest((0, 0)))
+        self.assertEqual(None, uut.find_nearest((-2000, 0)))
+        self.assertEqual(None, uut.find_nearest((40, 3)))
