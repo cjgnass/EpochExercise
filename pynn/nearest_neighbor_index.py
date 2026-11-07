@@ -44,15 +44,15 @@ class NearestNeighborIndex:
         points, None is returned.
         """
 
-        min_dist = None
         min_point = None
-
+        min_dist_squared = None
         for point in self.points:
             deltax = point[0] - query_point[0]
             deltay = point[1] - query_point[1]
-            dist = math.sqrt(deltax * deltax + deltay * deltay)
-            if min_dist is None or dist < min_dist:
-                min_dist = dist
+            dist_squared = deltax * deltax + deltay * deltay
+            if min_dist_squared is None or dist_squared < min_dist_squared:
+                min_dist_squared = dist_squared
+                min_dist = math.sqrt(dist_squared)
                 min_point = point
 
         return min_point
