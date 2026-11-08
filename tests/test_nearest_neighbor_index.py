@@ -4,7 +4,7 @@ import random
 import time
 import unittest
 
-from pynn import NearestNeighborIndex
+from pynn import NearestNeighborIndex, Number
 
 
 class NearestNeighborIndexTest(unittest.TestCase):
@@ -78,3 +78,38 @@ class NearestNeighborIndexTest(unittest.TestCase):
         self.assertEqual(None, uut.find_nearest((0, 0)))
         self.assertEqual(None, uut.find_nearest((-2000, 0)))
         self.assertEqual(None, uut.find_nearest((40, 3)))
+
+    def test_bisect_left_by_x_coord(self):
+        """
+        test_bisect_left_by_x_coord tests bisect_left_by_x_coord
+        """
+        # tests no points
+        test_points: list[tuple[Number, Number]] = []
+        uut = NearestNeighborIndex(test_points)
+        self.assertEqual(0, uut.bisect_left_by_x_coord(0))
+
+        # tests one point
+        test_points: list[tuple[Number, Number]] = [(0, 0)]
+        uut = NearestNeighborIndex(test_points)
+        self.assertEqual(0, uut.bisect_left_by_x_coord(0))
+
+        # tests left edge
+        test_points: list[tuple[Number, Number]] = [(i, i) for i in range(10)]
+        uut = NearestNeighborIndex(test_points)
+        self.assertEqual(0, uut.bisect_left_by_x_coord(0))
+        self.assertEqual(0, uut.bisect_left_by_x_coord(-1))
+
+        # tests right edge
+        test_points: list[tuple[Number, Number]] = [(i, i) for i in range(10)]
+        uut = NearestNeighborIndex(test_points)
+        self.assertEqual(9, uut.bisect_left_by_x_coord(9))
+        self.assertEqual(9, uut.bisect_left_by_x_coord(10))
+
+        # tests if multiple targets are found in list
+        test_points: list[tuple[Number, Number]] = [(1, 1), (1, 1), (2, 2)]
+        uut = NearestNeighborIndex(test_points)
+        self.assertEqual(0, uut.bisect_left_by_x_coord(1))
+
+        test_points: list[tuple[Number, Number]] = [(1, 1), (2, 1), (2, 2)]
+        uut = NearestNeighborIndex(test_points)
+        self.assertEqual(1, uut.bisect_left_by_x_coord(2))

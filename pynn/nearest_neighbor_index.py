@@ -41,6 +41,9 @@ class NearestNeighborIndex:
         """
         bisect_left returns the index of the leftmost insertion point for target based on the x-coordinate of each point.
         """
+        if len(self.points) == 0:
+            return 0
+
         left = 0
         right = len(self.points) - 1
         while right - left > 1:
@@ -49,7 +52,12 @@ class NearestNeighborIndex:
                 right = middle
             else:
                 left = middle
-        return right
+
+        """
+        If we find the the target at the left index or should be placed before the left index, 
+        return left. Otherwise return right.
+        """
+        return left if left >= 0 and self.points[left][0] >= target else right
 
     def find_nearest_fast(
         self, query_point: tuple[Number, Number]
