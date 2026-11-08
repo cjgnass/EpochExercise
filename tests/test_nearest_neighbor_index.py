@@ -61,6 +61,8 @@ class NearestNeighborIndexTest(unittest.TestCase):
             actual.append(uut.find_nearest(query_point))
         new_time = time.time() - start
 
+        self.assertEqual(expected, actual)
+
         print(f"slow time: {slow_time:0.2f}sec")
         print(f"new time: {new_time:0.2f}sec")
         print(f"speedup: {(slow_time / new_time):0.2f}x")
