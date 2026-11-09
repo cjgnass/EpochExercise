@@ -131,3 +131,91 @@ class NearestNeighborIndexTest(unittest.TestCase):
         print(f"slow time: {slow_time:0.2f}sec")
         print(f"new time: {new_time:0.2f}sec")
         print(f"speedup: {(slow_time / new_time):0.2f}x")
+
+    def test_benchmark_ndim(self):
+        """
+        test_benchmark tests a bunch of values using the slow and fast version of the index
+        to determine the effective speedup.
+        """
+
+        def rand_point():
+            return (
+                random.uniform(-1000, 1000),
+                random.uniform(-1000, 1000),
+                random.uniform(-1000, 1000),
+                random.uniform(-1000, 1000),
+            )
+
+        index_points = [rand_point() for _ in range(10000)]
+        query_points = [rand_point() for _ in range(1000)]
+
+        expected = []
+        actual = []
+
+        # Run the baseline slow tests to get the expected values.
+        start = time.time()
+        for query_point in query_points:
+            expected.append(
+                NearestNeighborIndex.find_nearest_slow_ndim(query_point, index_points)
+            )
+        slow_time = time.time() - start
+
+        # don't include the indexing time when benchmarking
+        uut = NearestNeighborIndex(index_points)
+
+        # Run the indexed tests
+        start = time.time()
+        for query_point in query_points:
+            actual.append(uut.find_nearest(query_point))
+        new_time = time.time() - start
+
+        self.assertEqual(expected, actual)
+
+        print()
+        print("N-Dim Case:")
+        print(f"slow time: {slow_time:0.2f}sec")
+        print(f"new time: {new_time:0.2f}sec")
+        print(f"speedup: {(slow_time / new_time):0.2f}x")
+
+    # def test_big_benchmark_ndim(self):
+    #     """
+    #     test_benchmark tests a bunch of values using the slow and fast version of the index
+    #     to determine the effective speedup.
+    #     """
+    #
+    #     def rand_point():
+    #         return (
+    #             random.uniform(-1000, 1000),
+    #             random.uniform(-1000, 1000),
+    #         )
+    #
+    #     index_points = [rand_point() for _ in range(100000)]
+    #     query_points = [rand_point() for _ in range(1000)]
+    #
+    #     expected = []
+    #     actual = []
+    #
+    #     # Run the baseline slow tests to get the expected values.
+    #     start = time.time()
+    #     for query_point in query_points:
+    #         expected.append(
+    #             NearestNeighborIndex.find_nearest_slow_ndim(query_point, index_points)
+    #         )
+    #     slow_time = time.time() - start
+    #
+    #     # don't include the indexing time when benchmarking
+    #     uut = NearestNeighborIndex(index_points)
+    #
+    #     # Run the indexed tests
+    #     start = time.time()
+    #     for query_point in query_points:
+    #         actual.append(uut.find_nearest(query_point))
+    #     new_time = time.time() - start
+    #
+    #     self.assertEqual(expected, actual)
+    #
+    #     print()
+    #     print("N-Dim Case:")
+    #     print(f"slow time: {slow_time:0.2f}sec")
+    #     print(f"new time: {new_time:0.2f}sec")
+    #     print(f"speedup: {(slow_time / new_time):0.2f}x")
