@@ -4,7 +4,7 @@ import random
 import time
 import unittest
 
-from pynn import NearestNeighborIndex, Number
+from pynn import NearestNeighborIndex
 
 
 class NearestNeighborIndexTest(unittest.TestCase):

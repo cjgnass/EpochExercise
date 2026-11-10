@@ -1,1 +1,1 @@
-from .nearest_neighbor_index import NearestNeighborIndex, Number
+from .nearest_neighbor_index import NearestNeighborIndex
