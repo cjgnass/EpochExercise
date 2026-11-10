@@ -1,7 +1,5 @@
 import math
-
-type Number = int | float
-type Point = tuple[Number, ...]
+import csv
 
 
 class Node:
@@ -18,28 +16,42 @@ class NearestNeighborIndex:
     neighbor lookup through find_nearest_fast.
     """
 
-    def __init__(self, points: list[Point]):
+    def __init__(self, points=[], path=""):
         """
         Initializes a KD-tree from a list of N-dimensional points.
 
         Validates that all points have the same number of dimensions
         before recursively constructing the tree.
         """
-        self.dim_count = None
         self.root = None
+        self.points = points
+        self.dim_count: int = 0
 
-        if len(points) > 0:
-            self.dim_count = len(points[0])
+        if path != "":
+            with open(path, "r", newline="", encoding="utf-8") as file:
+                reader = csv.reader(file)
+                i = 0
+                for row in reader:
+                    if i == 0:
+                        i += 1
+                        continue
+                    self.points.append(tuple(map(float, row)))
+
+        self.index_points()
+
+    def index_points(self):
+        if len(self.points) > 0:
+            self.dim_count = len(self.points[0])
 
             # ensures all points have the same number of dimensions
-            for point in points:
+            for point in self.points:
                 if len(point) != self.dim_count:
                     raise ValueError("All points must have the same dimensions")
 
             # builds the KD-tree
-            self.root = self.build_kd_tree(points, 0)
+            self.root = self.build_kd_tree(self.points, 0)
 
-    def build_kd_tree(self, points: list[Point], depth: int) -> Node | None:
+    def build_kd_tree(self, points, depth: int) -> Node | None:
         """
         Recursively constructs a balanced KD-tree by partitioning points along
         alternating dimensions using the median at each depth.
@@ -72,7 +84,7 @@ class NearestNeighborIndex:
         return node
 
     @staticmethod
-    def find_nearest_slow(query_point: Point, haystack: list[Point]) -> Point | None:
+    def find_nearest_slow(query_point, haystack):
         """
         find_nearest_slow returns the point that is closest to query_point. If there are no indexed
         points, None is returned.
@@ -92,9 +104,7 @@ class NearestNeighborIndex:
         return min_point
 
     @staticmethod
-    def find_nearest_slow_ndim(
-        query_point: Point, haystack: list[Point]
-    ) -> Point | None:
+    def find_nearest_slow_ndim(query_point, haystack):
         """
         Finds the nearest point using a brute-force search
         over N-dimensional points.
@@ -112,7 +122,7 @@ class NearestNeighborIndex:
         return min_point
 
     @staticmethod
-    def find_distance_squared(p1: Point, p2: Point) -> Number:
+    def find_distance_squared(p1, p2):
         """
         Calculates the squared Euclidean distance between two N-dimensional points.
 
@@ -137,7 +147,7 @@ class NearestNeighborIndex:
         return dist_squared
 
     @staticmethod
-    def find_distance(p1: Point, p2: Point) -> Number:
+    def find_distance(p1, p2):
         """
         Calculates the Euclidean distance between two N-dimensional points.
 
@@ -153,7 +163,7 @@ class NearestNeighborIndex:
         """
         return math.sqrt(NearestNeighborIndex.find_distance_squared(p1, p2))
 
-    def find_nearest_fast(self, query_point: Point, node: Node | None) -> Node | None:
+    def find_nearest_fast(self, query_point, node):
         """
         Recursively finds the nearest neighbor to a query point using KD-tree search.
 
@@ -212,7 +222,7 @@ class NearestNeighborIndex:
 
         return closest_node
 
-    def find_nearest(self, query_point: Point) -> Point | None:
+    def find_nearest(self, query_point):
         """
         Finds the nearest indexed point to the query point using KD-tree search
         and Euclidean distance.
