@@ -3,6 +3,7 @@
 import random
 import time
 import unittest
+import random
 
 from pynn import NearestNeighborIndex
 
@@ -72,150 +73,110 @@ class NearestNeighborIndexTest(unittest.TestCase):
         """
         test_no_points tests nearest neighbor queries returns None if NearestNeighborIndex is initialized with no points.
         """
-
         test_points = []
-
         uut = NearestNeighborIndex(test_points)
-
         self.assertEqual(None, uut.find_nearest((0, 0)))
         self.assertEqual(None, uut.find_nearest((-2000, 0)))
         self.assertEqual(None, uut.find_nearest((40, 3)))
 
-    def test_worst_case_benchmark(self):
+    def test_backtracking(self):
         """
-        test_benchmark tests a bunch of values using the slow and fast version of the index
-        to determine the effective speedup.
+        Tests whether the search explores the opposite subtree
+        when it may contain a closer point.
         """
-
-        def rand_point_close_to_origin():
-            return (random.uniform(-10, 10), random.uniform(-10, 10))
-
-        def rand_far_point():
-            return (
-                10,
-                random.choice(
-                    [random.uniform(-11000, -10000), random.uniform(10000, 11000)]
-                ),
-            )
-
-        index_points: list[tuple[Number, Number]] = [
-            rand_far_point() for _ in range(9999)
+        points = [
+            (0, 0),
+            (5, 5),
+            (6, 0),
         ]
-        index_points.append((50, 50))
-        query_points = [rand_point_close_to_origin() for _ in range(1000)]
 
-        expected = []
-        actual = []
+        uut = NearestNeighborIndex(points)
 
-        # Run the baseline slow tests to get the expected values.
-        start = time.time()
-        for query_point in query_points:
-            expected.append(
-                NearestNeighborIndex.find_nearest_slow(query_point, index_points)
-            )
-        slow_time = time.time() - start
+        self.assertEqual((6, 0), uut.find_nearest((4, 0)))
 
-        # don't include the indexing time when benchmarking
-        uut = NearestNeighborIndex(index_points)
-
-        # Run the indexed tests
-        start = time.time()
-        for query_point in query_points:
-            actual.append(uut.find_nearest(query_point))
-        new_time = time.time() - start
-
-        self.assertEqual(expected, actual)
-
-        print()
-        print("Worst Case:")
-        print(f"slow time: {slow_time:0.2f}sec")
-        print(f"new time: {new_time:0.2f}sec")
-        print(f"speedup: {(slow_time / new_time):0.2f}x")
-
-    def test_benchmark_ndim(self):
+    def test_duplicate_points(self):
         """
-        test_benchmark tests a bunch of values using the slow and fast version of the index
-        to determine the effective speedup.
+        Tests whether duplicate points are indexed correctly.
         """
+        points = [
+            (1, 2),
+            (1, 2),
+            (1, 2),
+            (10, 10),
+        ]
 
-        def rand_point():
-            return (
-                random.uniform(-1000, 1000),
-                random.uniform(-1000, 1000),
-                random.uniform(-1000, 1000),
-                random.uniform(-1000, 1000),
-            )
+        uut = NearestNeighborIndex(points)
 
-        index_points = [rand_point() for _ in range(10000)]
-        query_points = [rand_point() for _ in range(1000)]
+        self.assertEqual((1, 2), uut.find_nearest((0, 0)))
 
-        expected = []
-        actual = []
+    def test_identical_axis_values(self):
+        """
+        Tests KD-tree construction and searching when
+        all points share the same x-coordinate.
+        """
+        points = [
+            (5, 1),
+            (5, 3),
+            (5, 5),
+            (5, 7),
+            (5, 9),
+        ]
 
-        # Run the baseline slow tests to get the expected values.
-        start = time.time()
-        for query_point in query_points:
-            expected.append(
-                NearestNeighborIndex.find_nearest_slow_ndim(query_point, index_points)
-            )
-        slow_time = time.time() - start
+        uut = NearestNeighborIndex(points)
 
-        # don't include the indexing time when benchmarking
-        uut = NearestNeighborIndex(index_points)
+        self.assertIn(uut.find_nearest((6, 8)), [(5, 7), (5, 9)])
 
-        # Run the indexed tests
-        start = time.time()
-        for query_point in query_points:
-            actual.append(uut.find_nearest(query_point))
-        new_time = time.time() - start
+    def test_equidistant_points(self):
+        """
+        Tests whether either equally close point can
+        be returned as a valid nearest neighbor.
+        """
+        points = [
+            (-1, 0),
+            (1, 0),
+        ]
 
-        self.assertEqual(expected, actual)
+        uut = NearestNeighborIndex(points)
 
-        print()
-        print("N-Dim Case:")
-        print(f"slow time: {slow_time:0.2f}sec")
-        print(f"new time: {new_time:0.2f}sec")
-        print(f"speedup: {(slow_time / new_time):0.2f}x")
+        result = uut.find_nearest((0, 0))
 
-    # def test_big_benchmark_ndim(self):
-    #     """
-    #     test_benchmark tests a bunch of values using the slow and fast version of the index
-    #     to determine the effective speedup.
-    #     """
-    #
-    #     def rand_point():
-    #         return (
-    #             random.uniform(-1000, 1000),
-    #             random.uniform(-1000, 1000),
-    #         )
-    #
-    #     index_points = [rand_point() for _ in range(100000)]
-    #     query_points = [rand_point() for _ in range(1000)]
-    #
-    #     expected = []
-    #     actual = []
-    #
-    #     # Run the baseline slow tests to get the expected values.
-    #     start = time.time()
-    #     for query_point in query_points:
-    #         expected.append(
-    #             NearestNeighborIndex.find_nearest_slow_ndim(query_point, index_points)
-    #         )
-    #     slow_time = time.time() - start
-    #
-    #     # don't include the indexing time when benchmarking
-    #     uut = NearestNeighborIndex(index_points)
-    #
-    #     # Run the indexed tests
-    #     start = time.time()
-    #     for query_point in query_points:
-    #         actual.append(uut.find_nearest(query_point))
-    #     new_time = time.time() - start
-    #
-    #     self.assertEqual(expected, actual)
-    #
-    #     print()
-    #     print("N-Dim Case:")
-    #     print(f"slow time: {slow_time:0.2f}sec")
-    #     print(f"new time: {new_time:0.2f}sec")
-    #     print(f"speedup: {(slow_time / new_time):0.2f}x")
+        self.assertIn(result, points)
+
+    def test_single_point(self):
+        """
+        Tests an index containing only one point.
+        """
+        uut = NearestNeighborIndex([(5, 10, 15)])
+
+        self.assertEqual(
+            (5, 10, 15),
+            uut.find_nearest((100, 200, 300)),
+        )
+
+    def test_randomized_ndim(self):
+        """
+        Compares KD-tree results against brute-force searches
+        across datasets with varying dimensions.
+        """
+        rng = random.Random(42)
+        for dim in (1, 2, 3, 4, 8, 16):
+            points = [
+                tuple(rng.uniform(-1000, 1000) for _ in range(dim)) for _ in range(100)
+            ]
+
+            uut = NearestNeighborIndex(points)
+
+            for _ in range(100):
+                query = tuple(rng.uniform(-1000, 1000) for _ in range(dim))
+
+                expected = uut.find_nearest_slow_ndim(
+                    query_point=query, haystack=points
+                )
+
+                actual = uut.find_nearest(query)
+
+                self.assertEqual(
+                    expected,
+                    actual,
+                    f"Failed for dimension {dim}, query {query}",
+                )

@@ -16,15 +16,32 @@ class NearestNeighborIndex:
     neighbor lookup through find_nearest_fast.
     """
 
-    def __init__(self, points=[], path=""):
+    def __init__(self, points=None, path=""):
         """
-        Initializes a KD-tree from a list of N-dimensional points.
+        Initializes a KD-tree for efficient nearest-neighbor searches
+        in N-dimensional space.
 
-        Validates that all points have the same number of dimensions
-        before recursively constructing the tree.
+        Points can be provided as a list of coordinate tuples, a path to
+        a CSV file, or both. When both are provided, the points loaded from
+        the CSV file are appended to the supplied list.
+
+        The CSV file must contain a header row followed by rows of numeric
+        coordinates. Each row represents a single point, and each column
+        represents a dimension.
+
+        All points must have the same number of dimensions. After loading,
+        the points are validated and organized into a KD-tree.
+
+        Args:
+        points (list[Point]): A list of N-dimensional points, where each
+            point is a tuple of integers or floats. Defaults to an empty list.
+        path (str): Path to a CSV file containing points. Defaults to an
+            empty string, indicating that no CSV file will be loaded.
         """
         self.root = None
-        self.points = points
+        self.points = []
+        if points is not None:
+            self.points = points
         self.dim_count: int = 0
 
         if path != "":
@@ -37,9 +54,6 @@ class NearestNeighborIndex:
                         continue
                     self.points.append(tuple(map(float, row)))
 
-        self.index_points()
-
-    def index_points(self):
         if len(self.points) > 0:
             self.dim_count = len(self.points[0])
 
