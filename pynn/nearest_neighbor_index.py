@@ -1,5 +1,5 @@
-import math
 import csv
+import math
 
 
 class Node:
@@ -13,13 +13,15 @@ class Node:
 class NearestNeighborIndex:
     """
     NearestNeighborIndex indexes a set of given points and provides fast nearest
-    neighbor lookup through find_nearest_fast.
+    neighbor lookup through find_nearest.
+    Points are stored in a KD-tree which allows for efficient search in a K-dimensional space.
+    https://www.geeksforgeeks.org/dsa/search-and-insertion-in-k-dimensional-tree/
     """
 
     def __init__(self, points=None, path=""):
         """
         Initializes a KD-tree for efficient nearest-neighbor searches
-        in N-dimensional space.
+        in K-dimensional space.
 
         Points can be provided as a list of coordinate tuples, a path to
         a CSV file, or both. When both are provided, the points loaded from
@@ -27,24 +29,26 @@ class NearestNeighborIndex:
 
         The CSV file must contain a header row followed by rows of numeric
         coordinates. Each row represents a single point, and each column
-        represents a dimension.
+        represents a dimension. The first row of files are reserved for
+        headers and are skipped.
 
         All points must have the same number of dimensions. After loading,
         the points are validated and organized into a KD-tree.
 
         Args:
-        points (list[Point]): A list of N-dimensional points, where each
+        points (list[Point]): A list of K-dimensional points, where each
             point is a tuple of integers or floats. Defaults to an empty list.
         path (str): Path to a CSV file containing points. Defaults to an
             empty string, indicating that no CSV file will be loaded.
         """
         self.root = None
         self.points = []
-        if points is not None:
+        if isinstance(points, list):
             self.points = points
-        self.dim_count: int = 0
+        self.dim_count = 0
 
         if path != "":
+            # appends all points in found in file
             with open(path, "r", newline="", encoding="utf-8") as file:
                 reader = csv.reader(file)
                 i = 0
@@ -52,7 +56,8 @@ class NearestNeighborIndex:
                     if i == 0:
                         i += 1
                         continue
-                    self.points.append(tuple(map(float, row)))
+                    mapped_row = tuple(map(float, row))
+                    self.points.append(mapped_row)
 
         if len(self.points) > 0:
             self.dim_count = len(self.points[0])
@@ -65,7 +70,7 @@ class NearestNeighborIndex:
             # builds the KD-tree
             self.root = self.build_kd_tree(self.points, 0)
 
-    def build_kd_tree(self, points, depth: int) -> Node | None:
+    def build_kd_tree(self, points, depth) -> Node | None:
         """
         Recursively constructs a balanced KD-tree by partitioning points along
         alternating dimensions using the median at each depth.
@@ -77,7 +82,7 @@ class NearestNeighborIndex:
         Returns:
             The root node of the constructed subtree, or None if no points are provided.
         """
-        if len(points) == 0 or self.dim_count is None:
+        if len(points) == 0:
             return None
 
         # sorts points by splitting dimension
@@ -121,7 +126,7 @@ class NearestNeighborIndex:
     def find_nearest_slow_ndim(query_point, haystack):
         """
         Finds the nearest point using a brute-force search
-        over N-dimensional points.
+        over K-dimensional points.
         """
 
         min_dist = None
@@ -138,7 +143,7 @@ class NearestNeighborIndex:
     @staticmethod
     def find_distance_squared(p1, p2):
         """
-        Calculates the squared Euclidean distance between two N-dimensional points.
+        Calculates the squared Euclidean distance between two K-dimensional points.
 
         Args:
             p1: First point.
@@ -163,7 +168,7 @@ class NearestNeighborIndex:
     @staticmethod
     def find_distance(p1, p2):
         """
-        Calculates the Euclidean distance between two N-dimensional points.
+        Calculates the Euclidean distance between two K-dimensional points.
 
         Args:
             p1: First point.
@@ -185,7 +190,7 @@ class NearestNeighborIndex:
         opposite subtree only if it could contain a closer point.
 
         Args:
-            query_point: The N-dimensional point for which to find the nearest neighbor.
+            query_point: The K-dimensional point for which to find the nearest neighbor.
             node: Root node of the subtree to search.
 
         Returns:
@@ -242,7 +247,7 @@ class NearestNeighborIndex:
         and Euclidean distance.
 
         Args:
-            query_point: The N-dimensional point for which to find the nearest neighbor.
+            query_point: The K-dimensional point for which to find the nearest neighbor.
 
         Returns:
             The closest indexed point, or None if the KD-tree is empty.

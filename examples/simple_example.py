@@ -10,7 +10,7 @@ from pynn.nearest_neighbor_index import NearestNeighborIndex
 def examples():
     """
     Demonstrates how to use NearestNeighborIndex to find the closest point
-    to a given location in a n-dimensional space.
+    to a given location in a K-dimensional space.
 
     NearestNeighborIndex allows you to efficiently search a collection of
     points to identify the one closest to a specified query point using
@@ -18,7 +18,7 @@ def examples():
 
     Steps:
         1. Define a list of points, where each point contains coordinates
-           representing its position in n-dimensional space
+           representing its position in K-dimensional space
         2. Create a NearestNeighborIndex instance using a list of points,
            a path to a CSV file containing points, or both.
         3. Define a query point representing the location of interest.
@@ -28,6 +28,7 @@ def examples():
 
     Notes:
         - All points must have the same number of dimensions
+        - First line of files are reserved for headers and are skipped
     """
 
     # Example 1.
@@ -57,7 +58,7 @@ def examples():
     ]
     # Creates a NearestNeighborIndex instance using the list of points
     uut = NearestNeighborIndex(points=points)
-    # Defines query point in 2D space
+    # Defines query point in 3D space
     query_point = (5, 5, 0)
     # Retrieves the indexed point closest to the query point
     closest_point = uut.find_nearest(query_point)
